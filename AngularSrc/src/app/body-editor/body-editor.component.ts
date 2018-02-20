@@ -20,10 +20,11 @@ export class BodyEditorComponent implements OnInit {
   }
   @Output() detailsChange = new EventEmitter();
   set details(val:{}){
+    console.log("SET DETAILS????????",val)
     if(!val){return;}
     console.log("OK?",val)
     this._details = val;
-    this.editor_text = val['editor_text']? val['editor_text']:'';
+    this.editor_text = val['current_text']? val['current_text']:'';
     this.editor_options = val['editor_options']? val['editor_options']:{};
     this.editor_theme = val['theme']? val['theme']:'monokai';
     this.editor_language = val['language']? val['language']:'python';
@@ -33,7 +34,7 @@ export class BodyEditorComponent implements OnInit {
     this.editMgr=this;
   }
   onEditorChange(){
-    console.log("OK?",this.editor_text,"ASDAS")
+    console.log("CHANGE TEXT?",this.editor_text,"ASDAS")
   }
 
   ngOnInit() {

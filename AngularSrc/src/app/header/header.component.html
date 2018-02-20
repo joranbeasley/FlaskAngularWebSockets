@@ -21,11 +21,9 @@
     <h5>{{ details.room_details.room_name }}</h5>
   </div>
   <div id="room_users" class="col s3" style="margin-top:10px">
-    <a *ngFor="let user of details.room_details.users"
-       href="#user-{{ user.username }}"
-       [className]="'my_btn '+ getUserClasses(user)">
-      {{ user.username }}
-    </a>
+    <user-badge [is_admin]="details.room_details.room_owner?'admin':''" [user]="user" *ngFor="let user of details.room_details.users">
+
+    </user-badge>
   </div>
 
   <div class="col s2">
@@ -49,10 +47,10 @@
 <div id="view-invitation" class="modal">
     <div class="modal-content">
       <h4>View Invitation</h4>
-        <div class="row">
-            {{ current_user.real_name }}
-            {{ current_user.nickname }}
-            {{ current_user.email }}
+        <div class="row" *ngIf="selected_user">
+            {{ selected_user.realname }}
+            {{ selected_user.nickname }}
+            {{ selected_user.email }}
         </div>
     <div class="modal-footer">
       <a href="#!" (click)="removeInvitation()" class="modal-action modal-close waves-effect waves-green btn-flat">Remove Invitation</a>

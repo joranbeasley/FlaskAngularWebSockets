@@ -21,6 +21,10 @@ class CoderPadSocket extends Socket{
   sync_request(){
     this.emit('sync_request',{'room_details':this.user_data})
   }
+  on_sync_result(cb:Function){
+    this.user_data
+    this.on('sync_result',(data)=>cb(data))
+  }
   on_user_speech(cb:Function){
     this.on('user_speech',(data)=>cb(data))
   }
@@ -74,6 +78,9 @@ export class AppComponent {
     this.b64_context = this.elementRef.nativeElement.getAttribute('data-b64enc');
 
   }
+  sync_request(){
+    this.connection.sync_request()
+  }
   send_handshake(){
     console.log("ATTEMPT TO JOIN ROOM!")
     this.connection.join_room(this.room_name,this.username)
@@ -87,6 +94,20 @@ export class AppComponent {
   }
   on_user_left(userDetails){
     console.log("GOODBYE:",userDetails)
+    this.connection.sync_request()
+  }
+  on_sync_result(userDetails){
+    console.log("??!")
+    if (userDetails['active_users']) {
+        this.details['room_details'].users=userDetails['active_users']
+    }
+    if(userDetails['program_text']) {
+        this.details['editor_details'].current_text = userDetails['program_text']
+    }else{
+      this.details['editor_details'].current_text = "def test(x):"
+    }
+
+    console.log("GOT SYNC:",userDetails)
   }
   ngOnInit() {
     let url = this.details['ws'].url;
@@ -97,6 +118,7 @@ export class AppComponent {
     this.connection.on_user_joined((userDetails)=>this.on_user_joined(userDetails))
     this.connection.on_user_list((userDetails)=>this.on_user_list(userDetails))
     this.connection.on_user_left((userDetails)=>this.on_user_left(userDetails))
+    this.connection.on_sync_result((userDetails)=>this.on_sync_result(userDetails))
     console.log("DDDDD",url)
     // console.log("CCCCC",this.connect_to)
     // let connection_info:{username:string,room:string} = JSON.parse(atob(this.connect_to))

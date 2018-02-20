@@ -7,18 +7,11 @@ import {HttpHeaders} from "@angular/common/http";
     styleUrls: ['./userbadge.widget.scss']
 })
 export class UserBadge implements OnInit {
-  private _user;
-  @Input()
-  get user(){
-    return this._user
-  }
-  @Output() userChange = new EventEmitter();
-  set user(val){
-    this._user = val;
-    this.userChange.emit(this._user)
-  }
+  @Input() user;
+  @Input() is_admin;
+
   ngOnInit() {
-    console.log("GOT DEETS?:",this.details)
+    console.log("User Badge?:",this.user,'a',this.is_admin,'b')
   }
 }
 @Component({
@@ -30,7 +23,7 @@ export class HeaderComponent implements OnInit {
   editMgr={"editor_language":"python"}
   language_options= ['python', 'javascript', 'django', 'c_cpp', 'sh', 'php', 'html', 'sql', 'typescript', 'lisp', 'fortran'];
   theme_options= ['monokai', 'eclipse', 'sunburst', 'clouds', 'twilight', 'dawn', 'crimson', 'sql', 'typescript', 'lisp', 'fortran'];
-
+  selected_user = null;
   _details:{ws:any,room_details:{room_owner: boolean,room_name: string,users:any[]},editor_details:{}};
   new_candidate = {nickname:"",email:"",real_name:""};
   @Input()
@@ -42,6 +35,7 @@ export class HeaderComponent implements OnInit {
     this._details = val;
     this.detailsChange.emit(this._details);
   }
+
   room_owner():boolean{
     return this.details.room_details.room_owner;
   }

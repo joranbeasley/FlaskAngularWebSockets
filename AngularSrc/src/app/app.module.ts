@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
-import { HeaderComponent } from './header/header.component';
+import {HeaderComponent, UserBadge} from './header/header.component';
 import { BodyComponent } from './body/body.component';
 import { BodyEditorComponent } from './body-editor/body-editor.component';
 import { BodyTerminalComponent } from './body-terminal/body-terminal.component';
@@ -22,6 +22,7 @@ const config: SocketIoConfig = { url: 'http://localhost:5678', options: {} };
     BodyComponent,
     BodyEditorComponent,
     BodyTerminalComponent,
+    UserBadge,
     BodyChatComponent
   ],
   imports: [

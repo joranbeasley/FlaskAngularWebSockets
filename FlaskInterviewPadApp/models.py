@@ -33,6 +33,7 @@ def user2dict(user,**kwargs):
         "email": user.email,
         "nickname": user.nickname,
         "username": user.nickname,
+        "classes":"my_btn" if not getattr(current_user,'is_admin',False) else "my_btn admin"
     }
 class InvitedUser:
     realname=None
@@ -43,12 +44,20 @@ class InvitedUser:
     is_anonymous=False
     is_active=True
     is_system_guest = True
+    invite_token = None
     def get_id(self):
         return self.email
     def to_dict(self):
-        return user2dict(self)
-    def __init__(self,realname,nickname,email,is_active=True):
+        d = user2dict(self)
+        d['invite_token'] = self.invite_token
+        d['invite_url'] = self.invite_url
+        return d
+    def get_invite_url(self):
+        return "%s/code/%s"%(request.host_url,self.invite_token)
+    def __init__(self,invite_token,realname,nickname,email,is_active=True):
         self.realname = realname
+        self.invite_token = invite_token
+        self.invite_url = self.get_invite_url()
         self.nickname = nickname
         self.email = email
         self.is_active = is_active
@@ -77,13 +86,13 @@ class ActiveRoomUser(db.Model):
     def to_dict(self):
         return {
             "email":self.email,
-            "room_name":self.room.name,
+            "room_name":self.room.room_name,
             "nickname":self.nickname,
             "username":self.nickname,
             "state":self.state,
             "is_admin":self.is_admin,
-            "session_started":self.session_started,
-            "session_ended":self.session_ended,
+            "session_started":self.session_started.isoformat(),
+            "session_ended":self.session_ended.isoformat() if self.session_ended else None,
             "is_active":self.is_active
         }
     @staticmethod
@@ -91,7 +100,7 @@ class ActiveRoomUser(db.Model):
         my_active_users = ActiveRoomUser.query.filter_by(sid=request.sid)
         if room:
             my_active_users = my_active_users.filter_by(room_id=room.id)
-        my_active_users.update(session_ended=datetime.datetime.now())
+        my_active_users.update(session_ended=datetime.datetime.now(),state="disconnected")
         db.session.commit()
 
     @staticmethod
@@ -105,6 +114,7 @@ class ActiveRoomUser(db.Model):
                 if total_seconds(timedelta) < 180:
                     print("Session Restored!")
                     last_room.session_ended = None
+                    last_room.state = 'active'
                     last_room.sid = request.sid
                     db.session.commit()
                     return
@@ -228,7 +238,7 @@ class Invites(db.Model):
         self.token_invite = tmp_token
 
     def to_user(self):
-        return InvitedUser(nickname=self.nickname,email=self.email,realname=self.real_name)
+        return InvitedUser(invite_token=self.token_invite,nickname=self.nickname,email=self.email,realname=self.real_name)
     def __init__(self,**kwargs):
         tmp_token =hashlib.sha256((str(time.time())+str(random.uniform(-100,124))).encode('latin1')).hexdigest()
         kwargs['token_invite'] = kwargs.pop('token_invite',tmp_token)

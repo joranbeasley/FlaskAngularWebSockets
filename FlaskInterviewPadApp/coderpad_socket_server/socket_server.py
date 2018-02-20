@@ -24,11 +24,6 @@ def emit2(event,*args,**kwargs):
     #     logB.info("EMIT: %r => %s %s"%(event,args,kwargs))
     emit(event,*args,**kwargs)
 class ActiveUsers:
-    active_users_by_room={}
-    active_users_by_sid={}
-    active_sids_by_room = {}
-    active_emails_by_room = {}
-    active_sids = set()
     pending_sids = set()
     @staticmethod
     def close_all_open(delay=0.5):
@@ -51,12 +46,20 @@ class ActiveUsers:
     def get_room_users(room_name,include_inactive=True):
         inactive_users = []
         room = Room.query.filter_by(room_name=room_name).order_by('-id').first()
+        active_users = ActiveRoomUser.query.filter_by(room_id=room.id, session_ended=None).all()
+        emails = set()
+        active_user_dicts = []
+        for u in active_users:
+            emails.add(u.email)
+            active_user_dicts.append(u.to_dict())
+
+            active_user_dicts[-1]['classes'] = "my_btn"
+            if getattr(current_user,'is_admin',False):
+                active_user_dicts[-1]['classes'] = "my_btn admin %s"%active_user_dicts[-1].get('state','')
+        emails = set(u.email for u in active_users)
         if include_inactive:
-            inactive_users = [invite.to_user().to_dict() for invite in room.invited_users if invite.email not in ActiveUsers.active_emails_by_room.setdefault(room_name,set())]
-
-        active_users =  ActiveRoomUser.query.filter_by(room_id=room.id,session_ended=None).all()
-
-        return active_users + inactive_users
+            inactive_users = [invite.to_user().to_dict() for invite in room.invited_users if invite.email not in emails]
+        return active_user_dicts + inactive_users
 
 
     @staticmethod
@@ -111,7 +114,7 @@ class ActiveUsers:
     @staticmethod
     def require_authentication(fn):
         def _inner_fn(*args,**kwargs):
-            if not request.sid in ActiveUsers.active_sids:
+            if not ActiveRoomUser.query.filter_by(sid=request.sid,session_ended=None).first():
                 disconnect()
             return fn(*args,**kwargs)
         return _inner_fn
@@ -178,7 +181,7 @@ def on_join(data):
 
     else:
         ActiveUsers.join_room(room_name)#,current_user.to_dict())
-    request_sync()
+    request_sync({'room_details':data})
     emit2('user_joined',{'username':username}, room=room_name)
 
 
@@ -232,22 +235,23 @@ def handle_message(message):
 @socketio.on("sync_request")
 @ActiveUsers.require_authentication
 def request_sync(user_details):
+    print("SYNC!!!!")
     room_name = user_details['room_details']['room']
     room = Room.query.filter_by(room_name=room_name).first()
     if not ActiveUsers.is_authenticated(room):
         disconnect()
 
-    if not room or not room.is_invited(current_user):
+    if not room or not room.verify_allowed():
         disconnect()
     payload = {'program_text':room.current_text}
     if hasattr(current_user,'is_admin') and current_user.is_admin:
         payload['active_users']=ActiveUsers.get_room_users(room_name)
         print("ACTIVE USERS:", payload['active_users'])
-        active_ids = {u['id'] for u in payload['active_users']}
-        payload['all_users']=[u.to_dict() for u in room.room_members()]
-        for user in payload['all_users']:
-            user['online'] = user['id'] in active_ids
-    emit2('sync_result',payload,broadcast=False)
+        # active_ids = {u['id'] for u in payload['active_users']}
+        # payload['all_users']=[u.to_dict() for u in room.room_members()]
+        # for user in payload['all_users']:
+        #     user['online'] = user['id'] in active_ids
+    emit2('sync_result',payload,room=request.sid)
 
 def handle_change_message(data):
     room = data['room_details']['room']
