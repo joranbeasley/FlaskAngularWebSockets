@@ -1,8 +1,26 @@
 import {EventEmitter,Component, Input, OnInit, Output} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {HttpHeaders} from "@angular/common/http";
-
-
+@Component({
+    selector:'user-badge',
+    templateUrl: './userbadge.widget.html',
+    styleUrls: ['./userbadge.widget.scss']
+})
+export class UserBadge implements OnInit {
+  private _user;
+  @Input()
+  get user(){
+    return this._user
+  }
+  @Output() userChange = new EventEmitter();
+  set user(val){
+    this._user = val;
+    this.userChange.emit(this._user)
+  }
+  ngOnInit() {
+    console.log("GOT DEETS?:",this.details)
+  }
+}
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
