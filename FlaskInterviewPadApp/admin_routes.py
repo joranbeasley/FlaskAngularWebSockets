@@ -49,8 +49,9 @@ def create_room():
         return redirect("/r/%s"%r.room_name)
     return render_template("admin-pages/create_room.html")
 
-@login_required
+
 @admin_bp.route("/invite_guest",methods=["GET","POST"])
+@login_required
 def invite_guest():
     payload = request.form.to_dict() or request.json
     room = Room.query.filter_by(room_name=payload.pop('room_name')).first()
@@ -66,6 +67,7 @@ def invite_guest():
     return json.dumps({"STATUS":"OK",
                        "user":{
                            "username":invite.nickname,
+                           "nickname":invite.nickname,
                            "email":invite.email,
                            "real_name":invite.real_name,
                            "state":"",
@@ -74,8 +76,9 @@ def invite_guest():
 
                        })
 
-@login_required
+
 @admin_bp.route("/add_user",methods=["GET","POST"])
+@login_required
 def add_user():
     if request.form:
         u = User(**request.form.to_dict())
@@ -85,7 +88,9 @@ def add_user():
         redirect(request.args.get('next','/admin'))
     return render_template("admin-pages/invite-user.html")
 
-@login_required
+
 @admin_bp.route("/")
+@login_required
 def admin():
+    print("SHOW ADMIN?")
     return render_template("admin-pages/app-admin.html")

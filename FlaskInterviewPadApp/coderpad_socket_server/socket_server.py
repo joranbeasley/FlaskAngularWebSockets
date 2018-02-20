@@ -105,11 +105,8 @@ class ActiveUsers:
 
 
     @staticmethod
-    def is_authenticated(room_name):
+    def is_authenticated(room):
         if getattr(current_user,'is_admin',False):return True
-        room = Room.query.filter_by(room_name=room_name,is_active=True).first()
-        if not room:
-            return False
         return ActiveRoomUser.query.filter_by(room_id=room.id,sid=request.sid,session_ended=None).count()>0
     @staticmethod
     def require_authentication(fn):
@@ -181,8 +178,7 @@ def on_join(data):
 
     else:
         ActiveUsers.join_room(room_name)#,current_user.to_dict())
-    emit2('user_list', {'active_users': active_room_users,
-                        'program_text': get_latest_prog(room.room_name)}, broadcast=False)
+    request_sync()
     emit2('user_joined',{'username':username}, room=room_name)
 
 
@@ -237,12 +233,13 @@ def handle_message(message):
 @ActiveUsers.require_authentication
 def request_sync(user_details):
     room_name = user_details['room_details']['room']
-    if not ActiveUsers.is_authenticated(room_name):
-        disconnect()
     room = Room.query.filter_by(room_name=room_name).first()
+    if not ActiveUsers.is_authenticated(room):
+        disconnect()
+
     if not room or not room.is_invited(current_user):
         disconnect()
-    payload = {'program_text':get_latest_prog(room_name)}
+    payload = {'program_text':room.current_text}
     if hasattr(current_user,'is_admin') and current_user.is_admin:
         payload['active_users']=ActiveUsers.get_room_users(room_name)
         print("ACTIVE USERS:", payload['active_users'])
@@ -250,7 +247,7 @@ def request_sync(user_details):
         payload['all_users']=[u.to_dict() for u in room.room_members()]
         for user in payload['all_users']:
             user['online'] = user['id'] in active_ids
-    emit2('sync_result',payload)
+    emit2('sync_result',payload,broadcast=False)
 
 def handle_change_message(data):
     room = data['room_details']['room']
