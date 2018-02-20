@@ -177,10 +177,10 @@ def on_join(data):
     join_room(room.room_name)
     # print("C:",current_user)
     if not user or current_user.is_anonymous:
-        ActiveUsers.add_to_room(room_name,{'username':username,'id':random.choice(string.ascii_uppercase),"sid":request.sid,"is_AFK":False})
+        ActiveUsers.join_room(room_name)#,{'username':username,'id':random.choice(string.ascii_uppercase),"sid":request.sid,"is_AFK":False})
 
     else:
-        ActiveUsers.add_to_room(room_name,current_user.to_dict())
+        ActiveUsers.join_room(room_name)#,current_user.to_dict())
     emit2('user_list', {'active_users': active_room_users,
                         'program_text': get_latest_prog(room.room_name)}, broadcast=False)
     emit2('user_joined',{'username':username}, room=room_name)
@@ -200,13 +200,7 @@ def on_speech(data):
 
 @socketio.on('leave')
 def on_leave(data):
-    pass
-    # print("GOODNIGHT?", data)
-    # if not data:return
-    # username = data['username']
-    # room_name = data['room']
-    # room = Room.query.filter_by(room_name=room_name).first()
-    # emit('user_left', {'username': username}, room=room_name)
+    print("Graceful shutdown?")
 
 @socketio.on("focus_lost")
 def on_lost_focus(data):
