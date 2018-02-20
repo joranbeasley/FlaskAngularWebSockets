@@ -6,7 +6,7 @@
   "apps": [
     {
       "root": "src",
-      "outDir": "../FlaskCodingPadApp/static/js/angular_bundle",
+      "outDir": "../FlaskInterviewPadApp/static/js/angular_bundle",
       "assets": [
         "assets",
         "favicon.ico"
