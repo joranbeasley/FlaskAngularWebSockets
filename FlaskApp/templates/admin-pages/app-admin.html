@@ -1,0 +1,18 @@
+{% extends "base_html.html" %}
+{% block body_content %}
+
+<body class="container">
+{% include "admin-components/admin_tabbed_panel.html" %}
+</body>
+
+{% endblock %}
+{% block after_body %}
+<script>
+function notify(ele,room_id){
+        var checked = $(ele).prop('checked')
+        $.get("/api/room_activation/"+room_id+"/"+(+checked))
+        console.log(ele,room_id,checked)
+    }
+{% endblock %}
+</script>
+</html>

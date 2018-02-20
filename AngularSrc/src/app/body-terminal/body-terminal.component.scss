@@ -1,0 +1,11 @@
+@import "variables.scss";
+
+#xterm-component{
+  position: fixed;
+  background:green ;
+  top:$header-height;
+  left:40%;
+  bottom:0;
+  right:0;
+}
+

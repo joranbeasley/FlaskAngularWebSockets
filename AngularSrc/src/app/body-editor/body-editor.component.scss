@@ -1,0 +1,8 @@
+@import "variables.scss";
+#body-editor{
+  background: #2b2b2b;
+  position: fixed;
+  top: $header-height;
+  bottom:0;left: 0;
+  right: 60%;
+}

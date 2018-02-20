@@ -1,0 +1,9 @@
+<div id="body-editor">
+
+  <div ace-editor id="ace-editor-42"
+       [(text)]="editor_text" [mode]="editor_language" [theme]="editor_theme"
+       [options]="editor_options" [readOnly]="false" [autoUpdateContent]="true"
+       [durationBeforeCallback]="200"  (textChanged)="onEditorChange($event)" style="min-height: 200px; width:100%; overflow: auto;">
+
+  </div>
+</div>
